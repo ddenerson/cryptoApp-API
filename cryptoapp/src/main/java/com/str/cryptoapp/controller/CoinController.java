@@ -3,25 +3,24 @@ package com.str.cryptoapp.controller;
 import com.str.cryptoapp.entities.Coin;
 import com.str.cryptoapp.repository.CoinRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.PersistenceUnit;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @RestController
-@RequestMapping("coin")
+@RequestMapping("/coin")
 public class CoinController {
 
-    @Autowired
+    @PersistenceUnit
     private CoinRepository coinRepository;
-
-
 
     @GetMapping()
     public ResponseEntity get(){
-        return new ResponseEntity<>(coinRepository.getAll(),HttpStatus.OK);
+        return new ResponseEntity<>(coinRepository.getAll(), HttpStatus.OK);
     }
 
     @GetMapping("/{name}")
@@ -29,44 +28,38 @@ public class CoinController {
         try {
             return new ResponseEntity<>(coinRepository.getByName(name), HttpStatus.OK);
         } catch (Exception error){
-            return new ResponseEntity<>(error.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(error.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
     @PostMapping()
-    public ResponseEntity post (@RequestBody Coin coin){
+    public ResponseEntity post(@RequestBody Coin coin) {
         try {
             coin.setDatetime(new Timestamp(System.currentTimeMillis()));
             return new ResponseEntity<>(coinRepository.insert(coin), HttpStatus.CREATED);
-        }catch (Exception error){
-            return new ResponseEntity<>(error.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception error){
+            return new ResponseEntity<>(error.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping()
+    public ResponseEntity put(@RequestBody Coin coin){
+        try{
+            coin.setDatetime(new Timestamp(System.currentTimeMillis()));
+            return new ResponseEntity<>(coinRepository.update(coin), HttpStatus.OK);
+        } catch (Exception error){
+            return new ResponseEntity<>(error.getMessage(), HttpStatus.NO_CONTENT);
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable int id){
-        try {
-            return new ResponseEntity<>(coinRepository.remove(id),HttpStatus.OK);
-
-        }catch (Exception error){
-            return new ResponseEntity<>(error.getMessage(),HttpStatus.NO_CONTENT);
-        }
-    }
-    @PutMapping()
-    public ResponseEntity put(@RequestBody Coin coin){
-
+        boolean response = false;
         try{
-            coin.setDatetime(new Timestamp(System.currentTimeMillis()));
-            return new ResponseEntity<>(coinRepository.update(coin), HttpStatus.OK);
-        }catch (Exception error){
-            return new ResponseEntity<>(error.getMessage(),HttpStatus.NO_CONTENT);
+            response = coinRepository.remove(id);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception error){
+            return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
         }
     }
-
-
-
-
-
-
 }

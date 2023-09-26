@@ -1,66 +1,63 @@
 package com.str.cryptoapp.repository;
 
+
 import com.str.cryptoapp.dto.CoinTransactionDTO;
 import com.str.cryptoapp.entities.Coin;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import javax.persistence.Persistence;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
+import javax.persistence.*;
 import java.util.List;
 
 @Repository
+@EnableAutoConfiguration
 public class CoinRepository {
 
-    @Autowired
-    private EntityManager entityManager;
-    
+
+
+
+  // EntityManagerFactory emf = Persistence.createEntityManagerFactory("cryptoapp");
+    @PersistenceUnit
+    private EntityManager em;
+
+
     @Transactional
-    /* Função para inserção */
-    public Coin insert(Coin coin){
-       entityManager.persist(coin);
+    public Coin insert (Coin coin){
+        em.persist(coin);
         return coin;
     }
 
+    @Transactional
     public Coin update(Coin coin){
-       entityManager.merge(coin);
+        em.merge(coin);
         return coin;
     }
 
-    /* Função para listar cadastro <nome,quantidade>  */
     public List<CoinTransactionDTO> getAll(){
-       String jpql = "select new com.str.cryptoapp.dto.CoinTransactionDTO(c.name,sum(c.quantity)) from Coin c group by c.name";
-       TypedQuery <CoinTransactionDTO> query = entityManager.createQuery(jpql, CoinTransactionDTO.class);
-       return query.getResultList();
+        String jpql = "select new com.gm2.cryptoapp.dto.CoinTransationDTO(c.name, sum(c.quantity)) from Coin c group by c.name";
+        TypedQuery<CoinTransactionDTO> query = em.createQuery(jpql, CoinTransactionDTO.class);
+        return query.getResultList();
     }
 
-    /* Função para listar cadastro atraves do nome
+
     public List<Coin> getByName(String name){
-        Object[] attr = new Object[]{name};
-        return jdbcTemplate.query(SELECT_BY_NAME, new RowMapper<Coin>() {
-            @Override
-            public Coin mapRow(ResultSet rs, int rowNum) throws SQLException {
-
-                Coin coin = new Coin();
-                coin.setId(rs.getInt("id"));
-                coin.setName(rs.getString("name"));
-                coin.setQuantity(rs.getBigDecimal("quantity"));
-                coin.setPrice(rs.getBigDecimal("price"));
-                coin.setDatetime(rs.getTimestamp("datetime"));
-                return coin;
-            }
-        },attr);
+        String jpql = "select c from Coin c where c.name like :name";
+        TypedQuery<Coin> query = em.createQuery(jpql, Coin.class);
+        query.setParameter("name", "%" + name + "%");
+        return query.getResultList();
     }
 
-    Função para remover cadastro atraves do id
-    public int remove(int id){
-        return jdbcTemplate.update(DELETE,id);
+    @Transactional
+    public boolean remove(int id) {
+        Coin coin = em.find(Coin.class, id);
+
+        if(coin == null)
+            throw new RuntimeException();
+
+        em.remove(coin);
+        return true;
     }
-
-     */
-
-
 
 }
